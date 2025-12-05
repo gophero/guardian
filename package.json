@@ -1,0 +1,23 @@
+{
+	"name": "@gophero/guardian",
+	"private": true,
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/gophero/guardian.git"
+	},
+	"type": "module",
+	"description": "Guardian, A Go library for Authentication, Authorization and User Management.",
+	"scripts": {
+		"spell-check": "cspell .",
+		"prettier:fmt": "prettier . --write"
+	},
+	"license": "MIT",
+	"packageManager": "pnpm@10.22.0",
+	"version": "",
+	"devDependencies": {
+		"cspell": "^9.3.2",
+		"prettier": "3.6.2",
+		"prettier-plugin-sql": "^0.19.2",
+		"prettier-plugin-toml": "^2.0.6"
+	}
+}

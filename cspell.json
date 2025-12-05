@@ -1,0 +1,23 @@
+{
+	"$schema": "https://raw.githubusercontent.com/streetsidesoftware/cspell/main/cspell.schema.json",
+	"useGitignore": true,
+	"allowCompoundWords": true,
+	"words": [
+		"govulncheck",
+		"sqlc",
+		"nuxt",
+		"golangci",
+		"dotenv",
+		"envprefix",
+		"timestamptz",
+		"ldflags",
+		"GOBIN",
+		"connectrpc",
+		"bufbuild",
+		"isready",
+		"rustfs",
+		"axllent",
+		"dskit"
+	],
+	"ignorePaths": ["go.mod", "go.sum", "pnpm-lock.yaml", "*.pb.go", "*_pb.ts"]
+}

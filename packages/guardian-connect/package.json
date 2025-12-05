@@ -1,0 +1,15 @@
+{
+	"name": "@gophero/guardian-connect",
+	"version": "",
+	"description": "ConnectRPC API client for Guardian",
+	"type": "module",
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/gophero/guardian.git"
+	},
+	"scripts": {},
+	"keywords": [],
+	"author": "gophero",
+	"license": "MIT",
+	"packageManager": "pnpm@10.22.0"
+}

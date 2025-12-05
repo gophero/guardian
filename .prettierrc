@@ -1,0 +1,16 @@
+{
+	"useTabs": true,
+	"tabWidth": 4,
+	"semi": false,
+	"singleQuote": false,
+	"trailingComma": "all",
+	"vueIndentScriptAndStyle": false,
+	"bracketSameLine": true,
+
+	"plugins": ["prettier-plugin-toml", "prettier-plugin-sql"],
+
+	"language": "postgresql",
+	"keywordCase": "upper",
+	"dataTypeCase": "upper",
+	"functionCase": "upper"
+}

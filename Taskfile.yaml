@@ -1,0 +1,229 @@
+version: "3"
+
+output: prefixed
+
+dotenv: [".env"]
+
+vars:
+    TMP_DIR: "{{.ROOT_DIR}}/tmp"
+    BIN_DIR: "{{.ROOT_DIR}}/bin"
+
+    GUARDIAN_MAIN_PKG_PATH: "{{.ROOT_DIR}}/cmd/guardian"
+    GUARDIAN_DEV_BIN: "{{.TMP_DIR}}/guardian"
+    GUARDIAN_BIN: "{{.BIN_DIR}}/guardian"
+
+    # Tools
+    SQLC_PKG: "github.com/sqlc-dev/sqlc/cmd/sqlc"
+    SQLC_VERSION: "latest"
+    SQLC: "{{.BIN_DIR}}/sqlc"
+
+    GOOSE_PKG: "github.com/pressly/goose/v3/cmd/goose"
+    GOOSE_VERSION: "latest"
+    GOOSE: "{{.BIN_DIR}}/goose"
+
+    GOVULNCHECK_PKG: "golang.org/x/vuln/cmd/govulncheck"
+    GOVULNCHECK_VERSION: "latest"
+    GOVULNCHECK: "{{.BIN_DIR}}/govulncheck"
+
+    AIR_PKG: "github.com/air-verse/air"
+    AIR_VERSION: "latest"
+    AIR: "{{.BIN_DIR}}/air"
+
+    BUF_VERSION: "v1.60.0"
+    BUF: "{{.BIN_DIR}}/buf"
+
+    GOLANGCI_LINT_VERSION: "v2.6.2"
+    GOLANGCI_LINT: "{{.BIN_DIR}}/golangci-lint"
+
+env:
+    CGO_ENABLED: "0"
+    GOBIN: "{{.BIN_DIR}}"
+
+tasks:
+    # ---------------------------------------------------------------------------- #
+    #                                 Root Commands                                #
+    # ---------------------------------------------------------------------------- #
+    build:
+        desc: Builds all binaries
+        deps:
+            - guardian:build
+
+    generate:
+        desc: Generate code
+        deps:
+            - task: proto:generate
+            - task: db:generate
+
+    fmt:
+        desc: Format all files
+        deps:
+            - task: go:fmt
+            - task: proto:fmt
+            - task: prettier:fmt
+
+    dev:
+        desc: Run Development commands
+        deps:
+            - task: guardian:dev
+
+    spell-check:
+        desc: Check for spelling mistakes
+        cmds:
+            - pnpm run spell-check
+
+    # ---------------------------------------------------------------------------- #
+    #                               Guardian Commands                              #
+    # ---------------------------------------------------------------------------- #
+    guardian:build:
+        desc: Builds guardian binary
+        cmds:
+            - 'go build -o {{q .GUARDIAN_BIN}} -ldflags="{{.LINKER_FLAG}}" {{q .GUARDIAN_MAIN_PKG_PATH}}'
+        vars:
+            NOW: '{{now | date "2006-01-02T15:04:05Z07:00"}}'
+            COMMIT_HASH_RAW:
+                sh: "git log -n 1 --format=%h"
+            COMMIT_HASH: "{{trim .COMMIT_HASH_RAW}}"
+            BRANCH_RAW:
+                sh: "git rev-parse --abbrev-ref HEAD"
+            BRANCH: "{{trim .BRANCH_RAW}}"
+            LINKER_FLAG: "-s -X main.commit={{q .COMMIT_HASH}} -X main.branch={{q .BRANCH}} -X main.buildTimeRFC3339={{q .NOW}}"
+
+    guardian:run:
+        desc: Run built guardian binary
+        cmds:
+            - "{{.GUARDIAN_BIN}} server"
+
+    guardian:dev:build:
+        desc: Builds guardian development binary
+        cmds:
+            - "go build -o {{q .GUARDIAN_DEV_BIN}} {{q .GUARDIAN_MAIN_PKG_PATH}}"
+
+    guardian:dev:
+        desc: Watch and Run guardian development binary
+        cmds:
+            - '{{.AIR}} -build.cmd "task guardian:dev:build" -build.bin {{q .GUARDIAN_DEV_BIN}} -build.args_bin server'
+
+    # ---------------------------------------------------------------------------- #
+    #                                  Go commands                                 #
+    # ---------------------------------------------------------------------------- #
+    go:fmt:
+        desc: Format go files
+        cmds:
+            - go fmt ./...
+
+    go:lint:
+        desc: Lint Go files
+        cmds:
+            - go vet ./...
+            - "{{.GOLANGCI_LINT}} run"
+
+    go:tidy:
+        desc: Get deps
+        cmds:
+            - go mod tidy
+
+    go:vuln:
+        desc: Check for vulnerability in go deps
+        cmds:
+            - "{{.GOVULNCHECK}} ./..."
+
+    # ---------------------------------------------------------------------------- #
+    #                                Tools Commands                                #
+    # ---------------------------------------------------------------------------- #
+    tools:install:
+        desc: Install tools in bin dir
+        cmds:
+            # These cmds uses recommended way of installation
+            - go install {{.SQLC_PKG}}@{{.SQLC_VERSION}}
+            - go install {{.GOOSE_PKG}}@{{.GOOSE_VERSION}}
+            - go install {{.AIR_PKG}}@{{.AIR_VERSION}}
+            - go install {{.GOVULNCHECK_PKG}}@{{.GOVULNCHECK_VERSION}}
+            - curl -sSL "https://github.com/bufbuild/buf/releases/download/{{.BUF_VERSION}}/buf-$(uname -s)-$(uname -m)" -o {{q .BUF}} && chmod +x {{q .BUF}}
+            - curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/HEAD/install.sh | sh -s -- -b {{q .BIN_DIR}} {{.GOLANGCI_LINT_VERSION}}
+
+    # ---------------------------------------------------------------------------- #
+    #                                Docker commands                               #
+    # ---------------------------------------------------------------------------- #
+    docker:create:
+        desc: Create containers for required infra components
+        cmds:
+            - docker compose create
+
+    docker:up:
+        desc: Create and Run containers for required infra components
+        cmds:
+            - docker compose up -d
+
+    docker:down:
+        desc: Stop and Delete containers for required infra components
+        cmds:
+            - docker compose down
+
+    docker:start:
+        desc: Start containers for required infra components
+        cmds:
+            - docker compose start
+
+    docker:stop:
+        desc: Stop containers for required infra components
+        cmds:
+            - docker compose stop
+
+    docker:restart:
+        desc: Restart containers for required infra components
+        cmds:
+            - docker compose restart
+
+    # ---------------------------------------------------------------------------- #
+    #                               Database Commands                              #
+    # ---------------------------------------------------------------------------- #
+    db:migrate:
+        desc: Run db migrations
+        deps:
+            - task: guardian:build
+        cmds:
+            - "{{.GUARDIAN_BIN}} migrate {{.CLI_ARGS}}"
+
+    db:generate:
+        desc: Generate database code
+        cmds:
+            - "{{.SQLC}} generate"
+        sources:
+            - sqlc.yaml
+            - internal/db/sql/**/*.sql
+
+    db:lint:
+        desc: Lint SQL files
+        cmds:
+            - "{{.SQLC}} vet"
+
+    # ---------------------------------------------------------------------------- #
+    #                               Protobuf Commands                              #
+    # ---------------------------------------------------------------------------- #
+    proto:generate:
+        desc: Generate code from protobuf files
+        cmds:
+            - "{{.BUF}} generate"
+        sources:
+            - buf.yaml
+            - buf.gen.yaml
+            - buf.lock
+            - proto/**/*
+
+    proto:fmt:
+        desc: Format protobuf files
+        cmds:
+            - "{{.BUF}} format -w"
+
+    proto:lint:
+        desc: Lint protobuf files
+        cmds:
+            - "{{.BUF}} lint"
+
+    # ---------------------------------------------------------------------------- #
+    #                               Prettier Commands                              #
+    # ---------------------------------------------------------------------------- #
+    prettier:fmt:
+        desc: Format all supported files with prettier
+        cmds:
+            - pnpm run prettier:fmt
