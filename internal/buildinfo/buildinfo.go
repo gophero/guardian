@@ -9,8 +9,10 @@ import (
 	"time"
 
 	"github.com/prometheus/client_golang/prometheus"
+	"github.com/rs/zerolog"
 )
 
+// BuildInfo represent build information of the binary.
 type BuildInfo struct {
 	Program   string
 	Version   string
@@ -25,7 +27,7 @@ type BuildInfo struct {
 	Platform  string // GOOS + GOARCH.
 }
 
-// Create new BuildInfo from given arguments, buildTime should be formatted according to RFC3339 (time.RFC3339).
+// New constructs new [BuildInfo] from given arguments. The buildTime string should be in format [time.RFC3339].
 func New(program string, branch string, buildTime string) (BuildInfo, error) {
 	var bTime time.Time
 
@@ -78,6 +80,7 @@ func New(program string, branch string, buildTime string) (BuildInfo, error) {
 	}, nil
 }
 
+// String formats build information as a string.
 func (bi BuildInfo) String() string {
 	return fmt.Sprintf(`program: %s
 version: %s
@@ -100,22 +103,23 @@ platform: %s`,
 	)
 }
 
-// LogAttrs returns key, value pair of BuildInfo to be passed slog.Logger for logging.
-func (bi BuildInfo) LogAttrs() []any {
-	return []any{
-		"program", bi.Program,
-		"version", bi.Version,
-		"build_time", bi.Time,
-		"branch", bi.Branch,
-		"revision", bi.Revision,
-		"dirty", bi.Dirty,
-		"tags", bi.Tags,
-		"go_version", bi.GoVersion,
-		"platform", bi.Platform,
-	}
+// Log logs build information using provided logger.
+func (bi BuildInfo) Log(log zerolog.Logger) {
+	log.Info().
+		CallerSkipFrame(1).
+		Str("program", bi.Program).
+		Str("version", bi.Version).
+		Time("build_time", bi.Time).
+		Str("branch", bi.Branch).
+		Str("revision", bi.Revision).
+		Bool("dirty", bi.Dirty).
+		Str("tags", bi.Tags).
+		Str("go_version", bi.GoVersion).
+		Str("platform", bi.Platform).
+		Msg("build information")
 }
 
-// Collector create a prometheus metric with a constant '1' value labeled by build information.
+// Collector creates a prometheus metric with a constant '1' value labeled by build information.
 func (bi BuildInfo) Collector() prometheus.Collector {
 	return prometheus.NewGaugeFunc(
 		prometheus.GaugeOpts{

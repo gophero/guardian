@@ -109,7 +109,7 @@ tasks:
     go:fmt:
         desc: Format go files
         cmds:
-            - go fmt ./...
+            - "{{.GOLANGCI_LINT}} fmt"
 
     go:lint:
         desc: Lint Go files

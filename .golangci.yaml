@@ -4,7 +4,20 @@ run:
     allow-parallel-runners: true
 
 linters:
-    # Default set of linters.
-    # The value can be: `standard`, `all`, `none`, or `fast`.
-    # Default: standard
     default: standard
+    settings:
+        errcheck:
+            check-type-assertions: true
+            check-blank: true
+            disable-default-exclusions: false
+            exclude-functions:
+                # It doesn't return an error. Documented since go1.24.
+                # errcheck have this as default but there isn't a new release.
+                - crypto/rand.Read
+            verbose: false
+
+formatters:
+    enable:
+        - gofmt
+        - gofumpt
+        - goimports
