@@ -45,6 +45,6 @@ func parseOut(out string) (io.Writer, error) {
 	case "stderr":
 		return os.Stderr, nil
 	default:
-		return nil, fmt.Errorf("logger: %s is not a valid output option", out)
+		return nil, fmt.Errorf("logger: `%s` is not a valid output option", out)
 	}
 }
