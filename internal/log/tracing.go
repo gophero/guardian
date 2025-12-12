@@ -10,6 +10,7 @@ type tracingHook struct{}
 
 var _ zerolog.Hook = tracingHook{}
 
+// Run implements [zerolog.Hook].
 func (h tracingHook) Run(e *zerolog.Event, level zerolog.Level, msg string) {
 	ctx := e.GetCtx()
 	span := trace.SpanFromContext(ctx)

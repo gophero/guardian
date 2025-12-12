@@ -1,6 +1,7 @@
 package log
 
 import (
+	"io"
 	"log"
 
 	"github.com/rs/zerolog"
@@ -11,6 +12,9 @@ type logWriter struct {
 	logger zerolog.Logger
 }
 
+var _ io.Writer = (*logWriter)(nil)
+
+// Write implements [io.Writer].
 func (w *logWriter) Write(p []byte) (n int, err error) {
 	n = len(p)
 	if n > 0 && p[n-1] == '\n' {

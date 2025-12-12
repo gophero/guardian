@@ -30,7 +30,7 @@ type Server struct {
 
 func newServer(name string, config Config, h http.Handler) (*Server, error) {
 	if config.Addr == "" {
-		return nil, errors.New("server: address cannot be empty")
+		return nil, errors.New("server: Addr cannot be empty")
 	}
 
 	protocols := new(http.Protocols)
