@@ -1,0 +1,29 @@
+{
+	"log": {
+		"level": "info",
+		"pretty": true,
+		"out": "stderr"
+	},
+	"postgres": {
+		"uri": "postgresql://postgres:postgres@localhost:5432/postgres"
+	},
+	"tracing": {
+		"enabled": true,
+		"client": "grpc",
+		"endpoint_url": "http://localhost:4317/v1/traces"
+	},
+	"metrics": {
+		"enabled": true,
+		"server": {
+			"addr": "localhost:9002",
+			"h2c": true
+		}
+	},
+	"profiling": {
+		"enabled": true,
+		"server": {
+			"addr": "localhost:9003",
+			"h2c": true
+		}
+	}
+}

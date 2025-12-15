@@ -87,11 +87,7 @@ func (s *Server) running(ctx context.Context) error {
 }
 
 func (s *Server) stop(reason error) error {
-	if reason != nil {
-		s.logger.Err(reason).Msg("server shutdown started")
-	} else {
-		s.logger.Info().Msg("server shutdown started")
-	}
+	s.logger.Err(reason).Msg("server shutdown started")
 
 	if err := s.httpSrv.Shutdown(context.Background()); err != nil {
 		s.logger.Err(err).Msg("server shutdown failed")

@@ -1,3 +1,4 @@
+name: guardian-dev
 services:
     pg:
         image: postgres:18
@@ -7,74 +8,92 @@ services:
             POSTGRES_USER: postgres
             POSTGRES_DB: postgres
         volumes:
-            - pg_data:/var/lib/postgresql/data
+            - pg-data:/var/lib/postgresql
         ports:
-            - 5432:5432
+            - ${PG_PORT:-5432}:5432
         healthcheck:
             test:
                 [
                     "CMD-SHELL",
                     "pg_isready -d $${POSTGRES_DB} -U $${POSTGRES_USER}",
                 ]
-            start_interval: 1s
-            start_period: 1m30s
-            interval: 30s
-            timeout: 10s
+            interval: 12s
+            timeout: 5s
             retries: 10
 
     nats:
         image: nats:2-alpine
         restart: on-failure
         volumes:
-            - nats_data:/data
+            - nats-data:/data
         ports:
-            - 4222:4222
-            - 8222:8222
+            - ${NATS_PORT:-4222}:4222
+            - ${NATS_HTTP_PORT:-8222}:8222
         healthcheck:
             test: wget http://localhost:8222/healthz -q -S -O -
-            start_interval: 1s
-            start_period: 30s
+            interval: 12s
+            timeout: 5s
             retries: 10
-            timeout: 10s
-            interval: 30s
         command: "--port 4222 --http_port 8222 --auth nats -js -sd /data"
 
     rustfs:
         image: rustfs/rustfs:latest
         restart: on-failure
-        volumes:
-            - rustfs_data:/data
-        ports:
-            - 9000:9000
-            - 9001:9001
         environment:
             RUSTFS_ACCESS_KEY: admin
             RUSTFS_SECRET_KEY: admin
             RUSTFS_CONSOLE_ENABLE: true
+        volumes:
+            - rustfs-data:/data
+        ports:
+            - ${RUSTFS_S3_PORT:-9800}:9000
+            - ${RUSTFS_UI_PORT:-9801}:9001
         command: "--console-enable /data"
 
     mailpit:
-        image: axllent/mailpit
+        image: axllent/mailpit:latest
         restart: on-failure
-        volumes:
-            - mailpit_data:/data
-        ports:
-            - 8025:8025
-            - 1025:1025
-        healthcheck:
-            test: wget http://localhost:8025/readyz -q -S -O -
-            start_interval: 1s
-            start_period: 30s
-            retries: 10
-            timeout: 10s
-            interval: 30s
         environment:
             MP_MAX_MESSAGES: 5000
             MP_DATABASE: /data/mailpit.db
             MP_SMTP_AUTH: admin:admin
             MP_SMTP_AUTH_ALLOW_INSECURE: 1
+        volumes:
+            - mailpit-data:/data
+        ports:
+            - ${MAILPIT_UI_PORT:-8025}:8025
+            - ${MAILPIT_SMTP_PORT:-1025}:1025
+        healthcheck:
+            test: wget http://localhost:8025/readyz -q -S -O -
+            interval: 12s
+            timeout: 5s
+            retries: 10
+
+    # Monitoring
+    prometheus:
+        image: prom/prometheus:v3.8.0
+        restart: on-failure
+        network_mode: host
+        profiles:
+            - monitoring
+        volumes:
+            - ${PROMETHEUS_CONFIG:-./dev/prometheus.yaml}:/etc/prometheus/prometheus.yml
+            - prometheus-data:/prometheus
+        command: "--web.listen-address ${PROMETHEUS_ADDR:-localhost:9090} --config.file /etc/prometheus/prometheus.yml"
+
+    jaeger:
+        image: cr.jaegertracing.io/jaegertracing/jaeger:2.13.0
+        restart: on-failure
+        profiles:
+            - monitoring
+        ports:
+            - ${JAEGER_UI_PORT:-9091}:16686
+            - ${JAEGER_OTLP_GRPC_PORT:-4317}:4317
+            - ${JAEGER_OTLP_HTTP_PORT:-4318}:4318
+
 volumes:
-    pg_data:
-    rustfs_data:
-    nats_data:
-    mailpit_data:
+    pg-data:
+    rustfs-data:
+    nats-data:
+    mailpit-data:
+    prometheus-data:

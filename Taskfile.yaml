@@ -35,6 +35,7 @@ vars:
     GOLANGCI_LINT_VERSION: "v2.6.2"
     GOLANGCI_LINT: "{{.BIN_DIR}}/golangci-lint"
 
+    DOCKER_MONITORING_PROFILE: "--profile monitoring"
 env:
     CGO_ENABLED: "0"
     GOBIN: "{{.BIN_DIR}}"
@@ -44,40 +45,49 @@ tasks:
     #                                 Root Commands                                #
     # ---------------------------------------------------------------------------- #
     build:
-        desc: Builds all binaries
+        desc: Builds all.
         deps:
             - guardian:build
 
     generate:
-        desc: Generate code
+        desc: Generate all.
         deps:
             - task: proto:generate
             - task: db:generate
 
     fmt:
-        desc: Format all files
+        desc: Format all.
         deps:
             - task: go:fmt
             - task: proto:fmt
             - task: prettier:fmt
 
     dev:
-        desc: Run Development commands
+        desc: Develop.
         deps:
             - task: guardian:dev
 
     spell-check:
-        desc: Check for spelling mistakes
+        desc: Spell check.
         cmds:
             - pnpm run spell-check
+
+    setup:
+        desc: Setup development environment.
+        cmds:
+            - task: tools:install
+            - task: docker:up
+            - cp ./dev/guardian.dev.json ./guardian.json
+            - task: guardian:build
+            # - task: db migration up
 
     # ---------------------------------------------------------------------------- #
     #                               Guardian Commands                              #
     # ---------------------------------------------------------------------------- #
     guardian:build:
-        desc: Builds guardian binary
+        desc: Build cmd/guardian.
         cmds:
-            - 'go build -o {{q .GUARDIAN_BIN}} -ldflags="{{.LINKER_FLAG}}" {{q .GUARDIAN_MAIN_PKG_PATH}}'
+            - 'go build -o {{q .GUARDIAN_BIN}} -trimpath -ldflags="{{.LINKER_FLAG}}" {{q .GUARDIAN_MAIN_PKG_PATH}}'
         vars:
             NOW: '{{now | date "2006-01-02T15:04:05Z07:00"}}'
             COMMIT_HASH_RAW:
@@ -89,17 +99,17 @@ tasks:
             LINKER_FLAG: "-s -X main.commit={{q .COMMIT_HASH}} -X main.branch={{q .BRANCH}} -X main.buildTimeRFC3339={{q .NOW}}"
 
     guardian:run:
-        desc: Run built guardian binary
+        desc: Run guardian.
         cmds:
             - "{{.GUARDIAN_BIN}} server"
 
     guardian:dev:build:
-        desc: Builds guardian development binary
+        desc: Build cmd/guardian for development.
         cmds:
             - "go build -o {{q .GUARDIAN_DEV_BIN}} {{q .GUARDIAN_MAIN_PKG_PATH}}"
 
     guardian:dev:
-        desc: Watch and Run guardian development binary
+        desc: Build and run guardian and watch for files changes.
         cmds:
             - '{{.AIR}} -build.cmd "task guardian:dev:build" -build.bin {{q .GUARDIAN_DEV_BIN}} -build.args_bin server'
 
@@ -107,23 +117,23 @@ tasks:
     #                                  Go commands                                 #
     # ---------------------------------------------------------------------------- #
     go:fmt:
-        desc: Format go files
+        desc: Format Go files.
         cmds:
             - "{{.GOLANGCI_LINT}} fmt"
 
     go:lint:
-        desc: Lint Go files
+        desc: Lint Go files.
         cmds:
             - go vet ./...
             - "{{.GOLANGCI_LINT}} run"
 
     go:tidy:
-        desc: Get deps
+        desc: Add missing and remove unused Go modules.
         cmds:
             - go mod tidy
 
     go:vuln:
-        desc: Check for vulnerability in go deps
+        desc: Check for vulnerability in Go deps.
         cmds:
             - "{{.GOVULNCHECK}} ./..."
 
@@ -131,7 +141,7 @@ tasks:
     #                                Tools Commands                                #
     # ---------------------------------------------------------------------------- #
     tools:install:
-        desc: Install tools in bin dir
+        desc: Install tools.
         cmds:
             # These cmds uses recommended way of installation
             - go install {{.SQLC_PKG}}@{{.SQLC_VERSION}}
@@ -144,48 +154,68 @@ tasks:
     # ---------------------------------------------------------------------------- #
     #                                Docker commands                               #
     # ---------------------------------------------------------------------------- #
-    docker:create:
-        desc: Create containers for required infra components
-        cmds:
-            - docker compose create
-
     docker:up:
-        desc: Create and Run containers for required infra components
+        desc: Create and start required infra containers.
         cmds:
             - docker compose up -d
 
     docker:down:
-        desc: Stop and Delete containers for required infra components
+        desc: Stop and remove required infra containers.
         cmds:
             - docker compose down
 
     docker:start:
-        desc: Start containers for required infra components
+        desc: Start required infra containers.
         cmds:
             - docker compose start
 
     docker:stop:
-        desc: Stop containers for required infra components
+        desc: Stop required infra containers.
         cmds:
             - docker compose stop
 
     docker:restart:
-        desc: Restart containers for required infra components
+        desc: Restart required infra containers.
         cmds:
             - docker compose restart
+
+    docker:all:up:
+        desc: Create and start all (with monitoring) infra containers.
+        cmds:
+            - docker compose {{.DOCKER_MONITORING_PROFILE}} up -d
+
+    docker:all:down:
+        desc: Stop and remove all (with monitoring) infra containers.
+        cmds:
+            - docker compose {{.DOCKER_MONITORING_PROFILE}} down
+
+    docker:all:start:
+        desc: Start all (with monitoring) infra containers.
+        cmds:
+            - docker compose {{.DOCKER_MONITORING_PROFILE}} start
+
+    docker:all:stop:
+        desc: Stop all (with monitoring) infra containers.
+        cmds:
+            - docker compose {{.DOCKER_MONITORING_PROFILE}} stop
+
+    docker:all:restart:
+        desc: Restart all (with monitoring) infra containers.
+        cmds:
+            - docker compose {{.DOCKER_MONITORING_PROFILE}} restart
 
     # ---------------------------------------------------------------------------- #
     #                               Database Commands                              #
     # ---------------------------------------------------------------------------- #
-    db:migrate:
-        desc: Run db migrations
+    db:migration:
+        desc: Run db migrations.
         deps:
             - task: guardian:build
         cmds:
-            - "{{.GUARDIAN_BIN}} migrate {{.CLI_ARGS}}"
+            - "{{.GUARDIAN_BIN}} migration {{.CLI_ARGS}}"
 
     db:generate:
-        desc: Generate database code
+        desc: Generate Go files for from SQL source.
         cmds:
             - "{{.SQLC}} generate"
         sources:
@@ -193,7 +223,7 @@ tasks:
             - internal/db/sql/**/*.sql
 
     db:lint:
-        desc: Lint SQL files
+        desc: Lint SQL files.
         cmds:
             - "{{.SQLC}} vet"
 
@@ -201,7 +231,7 @@ tasks:
     #                               Protobuf Commands                              #
     # ---------------------------------------------------------------------------- #
     proto:generate:
-        desc: Generate code from protobuf files
+        desc: Generate code from protobuf files.
         cmds:
             - "{{.BUF}} generate"
         sources:
@@ -211,12 +241,12 @@ tasks:
             - proto/**/*
 
     proto:fmt:
-        desc: Format protobuf files
+        desc: Format protobuf files.
         cmds:
             - "{{.BUF}} format -w"
 
     proto:lint:
-        desc: Lint protobuf files
+        desc: Lint protobuf files.
         cmds:
             - "{{.BUF}} lint"
 
@@ -224,6 +254,6 @@ tasks:
     #                               Prettier Commands                              #
     # ---------------------------------------------------------------------------- #
     prettier:fmt:
-        desc: Format all supported files with prettier
+        desc: Format files with prettier.
         cmds:
             - pnpm run prettier:fmt

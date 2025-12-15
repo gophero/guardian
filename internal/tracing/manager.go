@@ -74,7 +74,7 @@ func (s *Manager) Init(ctx context.Context) error {
 	))
 
 	otel.SetErrorHandler(otel.ErrorHandlerFunc(func(cause error) {
-		log.Err(err).Msg("otel handler error")
+		log.Err(cause).Msg("otel handler error")
 	}))
 
 	log.Info().Msg("tracing provider configured")
