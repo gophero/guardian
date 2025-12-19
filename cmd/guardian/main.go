@@ -25,8 +25,7 @@ type Cmd struct {
 
 	Log log.Config `prefix:"log." envprefix:"LOG_" embed:""`
 
-	Server    ServerCmd    `cmd:"" help:"Start server."`
-	Migration MigrationCmd `cmd:"" help:"Work with database migration."`
+	Server ServerCmd `cmd:"" help:"Start server."`
 }
 
 func main() {

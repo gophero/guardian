@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/gophero/guardian/internal/buildinfo"
+	"github.com/gophero/guardian/internal/db"
 	"github.com/gophero/guardian/internal/infra/postgres"
 	"github.com/gophero/guardian/internal/log"
 	"github.com/gophero/guardian/internal/server"
@@ -16,7 +17,8 @@ import (
 )
 
 type ServerCmd struct {
-	Postgres postgres.Config `prefix:"postgres." envprefix:"POSTGRES_" embed:""`
+	Postgres  postgres.Config          `prefix:"postgres." envprefix:"POSTGRES_" embed:""`
+	Migration postgres.MigrationConfig `prefix:"migration." env:"MIGRATION_" embed:""`
 
 	Tracing tracing.Config `prefix:"tracing." envprefix:"TRACING_" embed:""`
 
@@ -54,6 +56,13 @@ func (cmd *ServerCmd) Run(ctx context.Context, buildInfo buildinfo.BuildInfo) er
 		return fmt.Errorf("main: connect postgres: %w", err)
 	}
 	defer pgPool.Close()
+
+	log.Info().Msg("connected to postgres")
+
+	// Run migrations.
+	if err := cmd.runMigrations(ctx); err != nil {
+		return err
+	}
 
 	prometheus.MustRegister(postgres.NewCollector(pgPool, "primary"))
 
@@ -107,5 +116,29 @@ func (cmd *ServerCmd) Run(ctx context.Context, buildInfo buildinfo.BuildInfo) er
 	}
 
 	log.Info().Msg("all services stopped")
+	return nil
+}
+
+func (cmd *ServerCmd) runMigrations(ctx context.Context) error {
+	d, err := postgres.StdConnect(ctx, cmd.Postgres)
+	if err != nil {
+		return fmt.Errorf("main: std connect postgres: %w", err)
+	}
+
+	defer func() {
+		if err := d.Close(); err != nil {
+			log.Err(err).Msg("failed to close db")
+		}
+	}()
+
+	f, err := postgres.NewMigrationFactory(d, cmd.Migration)
+	if err != nil {
+		return fmt.Errorf("main: new postgres migration factory: %w", err)
+	}
+
+	if err := db.RunMigrations(f); err != nil {
+		return fmt.Errorf("main: run migartion: %w", err)
+	}
+
 	return nil
 }

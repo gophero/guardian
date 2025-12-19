@@ -5,7 +5,6 @@ import (
 	"database/sql"
 	"fmt"
 
-	"github.com/gophero/guardian/internal/log"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/jackc/pgx/v5/stdlib"
 )
@@ -26,12 +25,10 @@ func Connect(ctx context.Context, config Config) (*pgxpool.Pool, error) {
 		return nil, fmt.Errorf("postgres: ping db: %w", err)
 	}
 
-	log.Info().Msg("connected to postgres")
-
 	return dbPool, nil
 }
 
-// StdConnect creates new [sql.DB]. The only use case for this is to run migration using goose. This ingores all pool related configurations.
+// StdConnect creates new [sql.DB]. The only use case for this is to run migrations. This ingores all pool related configurations.
 func StdConnect(ctx context.Context, config Config) (*sql.DB, error) {
 	poolConf, err := config.parse()
 	if err != nil {
@@ -48,8 +45,6 @@ func StdConnect(ctx context.Context, config Config) (*sql.DB, error) {
 	if err := db.PingContext(ctx); err != nil {
 		return nil, fmt.Errorf("postgres: ping db: %w", err)
 	}
-
-	log.Info().Msg("connected to postgres")
 
 	return db, nil
 }

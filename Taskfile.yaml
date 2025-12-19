@@ -17,9 +17,10 @@ vars:
     SQLC_VERSION: "latest"
     SQLC: "{{.BIN_DIR}}/sqlc"
 
-    GOOSE_PKG: "github.com/pressly/goose/v3/cmd/goose"
-    GOOSE_VERSION: "latest"
-    GOOSE: "{{.BIN_DIR}}/goose"
+    MIGRATE_PKG: "github.com/golang-migrate/migrate/v4/cmd/migrate"
+    MIGRATE_VERSION: "v4.19.1"
+    MIGRATE_BUILD_TAGS: "file pgx5"
+    MIGRATE: "{{.BIN_DIR}}/migrate"
 
     GOVULNCHECK_PKG: "golang.org/x/vuln/cmd/govulncheck"
     GOVULNCHECK_VERSION: "latest"
@@ -145,7 +146,7 @@ tasks:
         cmds:
             # These cmds uses recommended way of installation
             - go install {{.SQLC_PKG}}@{{.SQLC_VERSION}}
-            - go install {{.GOOSE_PKG}}@{{.GOOSE_VERSION}}
+            - go install -ldflags="-s -w -X main.Version={{.MIGRATE_VERSION}}" -tags="{{.MIGRATE_BUILD_TAGS}}" {{.MIGRATE_PKG}}@{{.MIGRATE_VERSION}}
             - go install {{.AIR_PKG}}@{{.AIR_VERSION}}
             - go install {{.GOVULNCHECK_PKG}}@{{.GOVULNCHECK_VERSION}}
             - curl -sSL "https://github.com/bufbuild/buf/releases/download/{{.BUF_VERSION}}/buf-$(uname -s)-$(uname -m)" -o {{q .BUF}} && chmod +x {{q .BUF}}
@@ -207,12 +208,10 @@ tasks:
     # ---------------------------------------------------------------------------- #
     #                               Database Commands                              #
     # ---------------------------------------------------------------------------- #
-    db:migration:
-        desc: Run db migrations.
-        deps:
-            - task: guardian:build
+    db:migration:create:
+        desc: Create new database migration with given name.
         cmds:
-            - "{{.GUARDIAN_BIN}} migration {{.CLI_ARGS}}"
+            - "{{.MIGRATE}} create -ext sql -dir internal/db/sql/schema -seq {{.CLI_ARGS}}"
 
     db:generate:
         desc: Generate Go files for from SQL source.
