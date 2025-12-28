@@ -7,9 +7,10 @@ import (
 	"syscall"
 
 	"github.com/alecthomas/kong"
+	"github.com/prometheus/client_golang/prometheus"
+
 	"github.com/gophero/guardian/pkg/bedrock/buildinfo"
 	"github.com/gophero/guardian/pkg/bedrock/log"
-	"github.com/prometheus/client_golang/prometheus"
 )
 
 var (

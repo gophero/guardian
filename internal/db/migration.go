@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/golang-migrate/migrate/v4"
+
 	"github.com/gophero/guardian/pkg/migration"
 )
 

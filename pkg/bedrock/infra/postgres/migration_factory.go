@@ -10,9 +10,10 @@ import (
 	"github.com/golang-migrate/migrate/v4"
 	"github.com/golang-migrate/migrate/v4/database/pgx/v5"
 	"github.com/golang-migrate/migrate/v4/source"
+	"github.com/rs/zerolog"
+
 	"github.com/gophero/guardian/pkg/bedrock/log"
 	"github.com/gophero/guardian/pkg/migration"
-	"github.com/rs/zerolog"
 )
 
 type MigrationConfig struct {

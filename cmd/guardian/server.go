@@ -6,14 +6,15 @@ import (
 	"runtime"
 	"time"
 
+	"github.com/grafana/dskit/services"
+	"github.com/prometheus/client_golang/prometheus"
+
 	"github.com/gophero/guardian/internal/db"
 	"github.com/gophero/guardian/pkg/bedrock/buildinfo"
 	"github.com/gophero/guardian/pkg/bedrock/infra/postgres"
 	"github.com/gophero/guardian/pkg/bedrock/log"
 	"github.com/gophero/guardian/pkg/bedrock/server"
 	"github.com/gophero/guardian/pkg/bedrock/tracing"
-	"github.com/grafana/dskit/services"
-	"github.com/prometheus/client_golang/prometheus"
 )
 
 type ServerCmd struct {

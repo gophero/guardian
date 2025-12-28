@@ -7,9 +7,10 @@ import (
 	"net"
 	"net/http"
 
-	"github.com/gophero/guardian/pkg/bedrock/log"
 	"github.com/grafana/dskit/services"
 	"github.com/rs/zerolog"
+
+	"github.com/gophero/guardian/pkg/bedrock/log"
 )
 
 type Config struct {

@@ -8,8 +8,9 @@ import (
 	"io"
 	"os"
 
-	"github.com/gophero/guardian/pkg/bedrock/stacktrace"
 	"github.com/rs/zerolog"
+
+	"github.com/gophero/guardian/pkg/bedrock/stacktrace"
 )
 
 // Logger is the global logger.

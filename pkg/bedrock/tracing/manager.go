@@ -4,8 +4,6 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/gophero/guardian/pkg/bedrock/buildinfo"
-	"github.com/gophero/guardian/pkg/bedrock/log"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace"
 	"go.opentelemetry.io/otel/propagation"
@@ -13,6 +11,9 @@ import (
 	"go.opentelemetry.io/otel/sdk/trace"
 	semconv "go.opentelemetry.io/otel/semconv/v1.37.0"
 	"go.opentelemetry.io/otel/trace/noop"
+
+	"github.com/gophero/guardian/pkg/bedrock/buildinfo"
+	"github.com/gophero/guardian/pkg/bedrock/log"
 )
 
 // Manager handles configuration, registration and shutdown of global tracer provider.
