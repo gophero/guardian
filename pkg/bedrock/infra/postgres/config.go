@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/gophero/guardian/internal/log"
+	"github.com/gophero/guardian/pkg/bedrock/log"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 )

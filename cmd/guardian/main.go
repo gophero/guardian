@@ -7,9 +7,8 @@ import (
 	"syscall"
 
 	"github.com/alecthomas/kong"
-	"github.com/gophero/guardian/internal/buildinfo"
-	"github.com/gophero/guardian/internal/log"
-	"github.com/gophero/guardian/internal/stacktrace"
+	"github.com/gophero/guardian/pkg/bedrock/buildinfo"
+	"github.com/gophero/guardian/pkg/bedrock/log"
 	"github.com/prometheus/client_golang/prometheus"
 )
 
@@ -29,8 +28,6 @@ type Cmd struct {
 }
 
 func main() {
-	log.StackTraceFunc = stacktrace.Take
-
 	defer func() {
 		if rvr := recover(); rvr != nil {
 			log.Fatal().Str(log.Stack(2)).Msg(fmt.Sprintf("panic: %v", rvr))

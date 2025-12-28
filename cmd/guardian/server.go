@@ -6,12 +6,12 @@ import (
 	"runtime"
 	"time"
 
-	"github.com/gophero/guardian/internal/buildinfo"
 	"github.com/gophero/guardian/internal/db"
-	"github.com/gophero/guardian/internal/infra/postgres"
-	"github.com/gophero/guardian/internal/log"
-	"github.com/gophero/guardian/internal/server"
-	"github.com/gophero/guardian/internal/tracing"
+	"github.com/gophero/guardian/pkg/bedrock/buildinfo"
+	"github.com/gophero/guardian/pkg/bedrock/infra/postgres"
+	"github.com/gophero/guardian/pkg/bedrock/log"
+	"github.com/gophero/guardian/pkg/bedrock/server"
+	"github.com/gophero/guardian/pkg/bedrock/tracing"
 	"github.com/grafana/dskit/services"
 	"github.com/prometheus/client_golang/prometheus"
 )

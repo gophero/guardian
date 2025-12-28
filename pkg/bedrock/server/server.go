@@ -7,7 +7,7 @@ import (
 	"net"
 	"net/http"
 
-	"github.com/gophero/guardian/internal/log"
+	"github.com/gophero/guardian/pkg/bedrock/log"
 	"github.com/grafana/dskit/services"
 	"github.com/rs/zerolog"
 )

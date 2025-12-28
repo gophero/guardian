@@ -27,7 +27,7 @@ import (
 	"runtime"
 	"strconv"
 
-	"github.com/gophero/guardian/internal/pool"
+	"github.com/gophero/guardian/pkg/bedrock/pool"
 )
 
 var _stackPool = pool.New(func() *Stack {

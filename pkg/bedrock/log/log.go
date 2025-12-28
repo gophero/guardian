@@ -8,6 +8,7 @@ import (
 	"io"
 	"os"
 
+	"github.com/gophero/guardian/pkg/bedrock/stacktrace"
 	"github.com/rs/zerolog"
 )
 
@@ -129,4 +130,9 @@ func Printf(format string, v ...any) {
 // is associated, a disabled logger is returned.
 func Ctx(ctx context.Context) *zerolog.Logger {
 	return zerolog.Ctx(ctx)
+}
+
+// Stack takes current stacktrace and returns (field key & value) pair which can be passed to [zerolog.Event.Str].
+func Stack(skip int) (string, string) {
+	return "stacktrace", stacktrace.Take(skip + 1)
 }

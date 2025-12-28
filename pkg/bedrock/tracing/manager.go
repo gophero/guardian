@@ -4,8 +4,8 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/gophero/guardian/internal/buildinfo"
-	"github.com/gophero/guardian/internal/log"
+	"github.com/gophero/guardian/pkg/bedrock/buildinfo"
+	"github.com/gophero/guardian/pkg/bedrock/log"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace"
 	"go.opentelemetry.io/otel/propagation"

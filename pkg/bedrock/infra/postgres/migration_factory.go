@@ -10,8 +10,8 @@ import (
 	"github.com/golang-migrate/migrate/v4"
 	"github.com/golang-migrate/migrate/v4/database/pgx/v5"
 	"github.com/golang-migrate/migrate/v4/source"
-	"github.com/gophero/guardian/core/migration"
-	"github.com/gophero/guardian/internal/log"
+	"github.com/gophero/guardian/pkg/bedrock/log"
+	"github.com/gophero/guardian/pkg/migration"
 	"github.com/rs/zerolog"
 )
 
@@ -55,7 +55,7 @@ func (f *migrationFactory) NewMigrate(sourceDriver string, src source.Driver, ta
 	}
 
 	m.LockTimeout = f.config.LockTimeout
-	m.Log = newMigrateLog(log.With().Str("migration_table", table).Logger())
+	m.Log = newMigrateLog(f.logger.With().Str("migration_table", table).Logger())
 
 	return m, nil
 }
